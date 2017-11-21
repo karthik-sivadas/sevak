@@ -7,7 +7,7 @@ Install
     
     gem install sevak
 
-Congigure
+Configuration
 
     Sevak.configure do |f|
         f.host = 'localhost'
