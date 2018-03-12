@@ -6,6 +6,7 @@ module Sevak
   class ConsumerBase
 
     include Core
+    include Autoscale
 
     DEFAULT_PREFETCH_COUNT = 10
 
@@ -13,14 +14,23 @@ module Sevak
       def self.queue_name(name='default')
         @queue_name ||= name
       end
+
+      def self.autoscale(value=false)
+        @autoscale ||= value
+      end
     # end of class methods
 
     def initialize
       @queue_name = self.class.queue_name
+      @autoscale = self.class.autoscale
     end
 
     def queue_name
       @queue_name
+    end
+
+    def autoscale
+      @autoscale
     end
 
     def queue
@@ -35,7 +45,7 @@ module Sevak
       queue.message_count
     end
 
-    def start
+    def initiate_consumer
       channel.prefetch(config.prefetch_count || DEFAULT_PREFETCH_COUNT)
 
       queue.subscribe(manual_ack: true, exclusive: false) do |delivery_info, metadata, payload|
@@ -63,6 +73,10 @@ module Sevak
       wait_for_threads
     end
 
+    def start
+      @autoscale ? decision_maker : initiate_consumer
+    end
+
     def wait_for_threads
       sleep
     end
@@ -87,6 +101,8 @@ module Sevak
 
     # Set the queue name for the consumer
     queue_name 'sevak.default'
+    autoscale false
+    
 
     def run(payload)
       # implement business logic in the corresponding consumer, the run method should respond with

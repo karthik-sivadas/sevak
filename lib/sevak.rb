@@ -109,5 +109,6 @@ module Sevak
 end
 
 require 'sevak/core'
+require 'sevak/autoscale'
 require 'sevak/consumer'
 require 'sevak/publisher'
