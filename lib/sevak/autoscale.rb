@@ -2,7 +2,7 @@
 module Sevak
 	
 	module Autoscale
-		MAX_CONSUMERS_LIMIT = 1
+		MAX_CONSUMERS_LIMIT = 5
 		MIN_CONSUMER_LIMIT  =  1
 		MAX_MESSAGE_PER_CONSUMER = 10
 	
@@ -10,11 +10,13 @@ module Sevak
 
 		def spawn_consumer
 			pid = fork do
-				c = Consumer.new()
+				
+				c = self.class.new()
+				c.autoscale = false
 				Signal.trap("USR1") do
 					c.cancel_consumer
 				end
-				c.initiate_consumer
+				c.start
 			end
 			ALL_CONSUMERS << pid
 		end
@@ -28,9 +30,7 @@ module Sevak
 
 		def take_scaling_decision
 			curr_size = ALL_CONSUMERS.size
-			puts "current_consumer_count : #{curr_size}"
 			curr_message_count = message_count
-			puts "current message count: #{curr_message_count}"
 			consumers_needed = (curr_message_count.fdiv( MAX_MESSAGE_PER_CONSUMER )).ceil
 			if curr_size > consumers_needed
 				'down'
@@ -52,7 +52,7 @@ module Sevak
 				else 
 					'do_nothing'
 				end
-				sleep 3
+				sleep 60
 			end
 		end
 			

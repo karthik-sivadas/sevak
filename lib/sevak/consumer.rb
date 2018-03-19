@@ -33,6 +33,10 @@ module Sevak
       @autoscale
     end
 
+    def autoscale=(value)
+      @autoscale = value
+    end
+
     def queue
       @queue ||= channel.queue(queue_name, durable: true)
     end
@@ -46,6 +50,8 @@ module Sevak
     end
 
     def initiate_consumer
+      puts 'Queue Name: ' + queue_name
+      puts connection.closed?
       channel.prefetch(config.prefetch_count || DEFAULT_PREFETCH_COUNT)
 
       queue.subscribe(manual_ack: true, exclusive: false) do |delivery_info, metadata, payload|
@@ -105,6 +111,7 @@ module Sevak
     
 
     def run(payload)
+      puts 'class run'
       # implement business logic in the corresponding consumer, the run method should respond with
       # status :ok, :error, :retry after the processing is over
       Sevak.log("Implement run method. Payload: #{payload.inspect} #{}")
